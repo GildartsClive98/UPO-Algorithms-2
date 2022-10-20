@@ -30,15 +30,22 @@ public class AdjListItem {
         this.vertex = vertex;
         adjList = new ArrayList<>(collection);
     }
-    
+
     @Override
     public boolean equals(Object obj) {
-        if(obj == null)
+        if (obj == null)
             return false;
-        if(obj.getClass().equals(this.getClass()))
-        {
-            AdjListItem comparedTo = (AdjListItem)obj;
-            return (hashCode() == comparedTo.hashCode());
+        if (obj.getClass().equals(this.getClass())) {
+            AdjListItem comparedTo = (AdjListItem) obj;
+            if (vertex == comparedTo.getVertex() && adjList.size() == comparedTo.adjList.size()) {
+                for (int i = 0; i < adjList.size(); i++) {
+                    var local = adjList.get(i);
+                    var compared = comparedTo.adjList.get(i);
+                    if (!local.equals(compared))
+                        return false;
+                }
+                return true;
+            }
         }
         return false;
     }

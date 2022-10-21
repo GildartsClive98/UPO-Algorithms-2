@@ -1,8 +1,11 @@
 package upo.graph20024119;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.Set;
 
 import upo.graph.base.VisitForest;
@@ -199,13 +202,12 @@ public class AdjListUndirWeight implements WeightedGraph {
 
     private boolean recCycleVisit(VisitForest forest, String item) {
         forest.setColor(item, Color.GRAY);
-        for(var element : getAdjacent(item)){
-            if(forest.getColor(element) == Color.WHITE){
+        for (var element : getAdjacent(item)) {
+            if (forest.getColor(element) == Color.WHITE) {
                 forest.setParent(element, item);
-                if(recCycleVisit(forest, element))
+                if (recCycleVisit(forest, element))
                     return true;
-            }
-            else if(!element.equals(forest.getPartent(item)))
+            } else if (!element.equals(forest.getPartent(item)))
                 return true;
         }
         forest.setColor(item, Color.BLACK);
@@ -237,10 +239,10 @@ public class AdjListUndirWeight implements WeightedGraph {
 
     @Override
     public void removeVertex(String arg0) throws NoSuchElementException {
-        if(!containsVertex(arg0))
+        if (!containsVertex(arg0))
             throw new NoSuchElementException(VERTICE_NON_NEL_GRAFO);
-        for(var element : getAdjacent(arg0))
-            removeEdge(arg0, element);            
+        for (var element : getAdjacent(arg0))
+            removeEdge(arg0, element);
 
         vertices.remove(getVertexIndex(arg0));
     }
@@ -299,8 +301,28 @@ public class AdjListUndirWeight implements WeightedGraph {
 
     @Override
     public WeightedGraph getPrimMST(String arg0) throws UnsupportedOperationException, IllegalArgumentException {
-        // TODO Auto-generated method stub
-        return null;
+        if (!containsVertex(arg0))
+            throw new IllegalArgumentException(VERTICE_NON_NEL_GRAFO);
+        AdjListUndirWeight graph = new AdjListUndirWeight();
+        int[] weights = new int[vertices.size()];
+        boolean[] def = new boolean[vertices.size()];
+        Arrays.fill(weights, 0);
+        Arrays.fill(def, false);
+        Queue<AdjListItem> queue = new LinkedList<>();
+        for (AdjListItem v : vertices)
+            queue.add(v);
+        while (!queue.isEmpty()) {
+            var vertex = queue.remove();
+            graph.vertices.add(vertex);
+            def[vertices.indexOf(vertex)] = true;
+            for (VertexAdjListItem adj : vertex.getAdjList()) {
+                if(!def[getVertexIndex(adj.getVertex())] && weights[getVertexIndex(adj.getVertex())] > getEdgeWeight(vertex.getVertex(), adj.getVertex())){
+                    graph.vertices.add(vertices.get(getVertexIndex(adj.getVertex())));
+                    graph.addEdge(vertex.getVertex(), adj.getVertex());
+                }
+            }
+        }
+        return graph;
     }
 
     @Override

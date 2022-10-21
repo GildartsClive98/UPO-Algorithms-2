@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "java",
+            "type": "java (buildArtifact)",
             "targetPath": "${workspaceFolder}/pratico-1.jar",
             "elements": [
                 "${compileOutput}/upo/graph20024119/",
@@ -13,7 +13,7 @@
             "label": "Export pratico1.jar jar with source code"
         },
         {
-            "type": "java",
+            "type": "java (buildArtifact)",
             "targetPath": "${workspaceFolder}/pratico-2.jar",
             "elements": [
                 "${compileOutput}/upo/union20024119/",
@@ -26,7 +26,7 @@
             "label": "Export pratico2.jar with source code"
         },
         {
-            "type": "java",
+            "type": "java (buildArtifact)",
             "targetPath": "${workspaceFolder}/test_complete.jar",
             "elements": [
                 "${compileOutput}",

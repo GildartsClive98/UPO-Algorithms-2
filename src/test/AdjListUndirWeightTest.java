@@ -32,12 +32,12 @@ public class AdjListUndirWeightTest {
             resultCompare.addVertex(new String(new char[] { a }));
         resultCompare.addEdge("A", "B");
         resultCompare.addEdge("B", "D");
-        resultCompare.addEdge("C", "E");
         resultCompare.addEdge("D", "E");
+        resultCompare.addEdge("E", "C");
         resultCompare.setEdgeWeight("A", "B", 2.0);
         resultCompare.setEdgeWeight("B", "D", 3.0);
-        resultCompare.setEdgeWeight("C", "E", 2.0);
         resultCompare.setEdgeWeight("D", "E", 2.0);
+        resultCompare.setEdgeWeight("E", "C", 2.0);
 
         var result = listUndir.getPrimMST("A");
         assertEquals(resultCompare, result);
@@ -60,5 +60,6 @@ public class AdjListUndirWeightTest {
         listUndir.setEdgeWeight("D", "E", 2.0);
 
         assertTrue(2.0 == listUndir.getEdgeWeight("A", "B"));
+        assertTrue(2.0 == listUndir.getEdgeWeight("B", "A"));
     }
 }

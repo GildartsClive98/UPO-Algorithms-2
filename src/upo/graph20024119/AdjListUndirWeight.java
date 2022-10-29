@@ -5,9 +5,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 
+import upo.additionalstructures.RealPriorityQueue;
 import upo.graph.base.VisitForest;
 import upo.graph.base.WeightedGraph;
 import upo.graph.base.VisitForest.Color;
@@ -76,9 +78,9 @@ public class AdjListUndirWeight implements WeightedGraph {
             throw new IllegalArgumentException(VERTICI_NON_NEL_GRAFO);
 
         for (AdjListItem adjListItem : vertices)
-            if (adjListItem.getVertex().equals(arg0))
+            if (adjListItem.getVertex().equals(arg0) || adjListItem.getVertex().equals(arg1))
                 for (VertexAdjListItem item : adjListItem.getAdjList())
-                    if (item.getVertex().equals(arg1))
+                    if (item.getVertex().equals(arg1) || item.getVertex().equals(arg0))
                         return true;
         return false;
     }
@@ -282,9 +284,9 @@ public class AdjListUndirWeight implements WeightedGraph {
             throw new NoSuchElementException(ARCO_NON_APPARTIENE_AL_GRAFO);
 
         for (AdjListItem adjListItem : vertices)
-            if (adjListItem.getVertex().equals(arg0))
+            if (adjListItem.getVertex().equals(arg0) || adjListItem.getVertex().equals(arg1))
                 for (VertexAdjListItem item : adjListItem.getAdjList())
-                    if (item.getVertex().equals(arg1))
+                    if (item.getVertex().equals(arg1) || item.getVertex().equals(arg0))
                         return item.getWeight();
         return 0;
     }
@@ -304,22 +306,36 @@ public class AdjListUndirWeight implements WeightedGraph {
         if (!containsVertex(arg0))
             throw new IllegalArgumentException(VERTICE_NON_NEL_GRAFO);
         AdjListUndirWeight graph = new AdjListUndirWeight();
-        int[] weights = new int[vertices.size()];
+        VisitForest forest = new VisitForest(this, VisitType.BFS);
         boolean[] def = new boolean[vertices.size()];
-        Arrays.fill(weights, 0);
         Arrays.fill(def, false);
-        Queue<AdjListItem> queue = new LinkedList<>();
-        for (AdjListItem v : vertices)
-            queue.add(v);
+        RealPriorityQueue<AdjListItem, Double> queue = new RealPriorityQueue<>();
+        for (AdjListItem v : vertices) {
+            queue.enqueue(Double.POSITIVE_INFINITY, v);
+            forest.setDistance(v.getVertex(), Double.POSITIVE_INFINITY);
+        }
+        forest.setDistance(arg0, 0);
+        queue.decreaseKey(forest.getDistance(arg0), vertices.get(getVertexIndex(arg0)));
         while (!queue.isEmpty()) {
-            var vertex = queue.remove();
-            graph.vertices.add(vertex);
-            def[vertices.indexOf(vertex)] = true;
+            var temp = queue.dequeue();
+            var vertex = temp.getValue();
+            graph.addVertex(vertex.getVertex());
+            def[getVertexIndex(vertex.getVertex())] = true;
             for (VertexAdjListItem adj : vertex.getAdjList()) {
-                if(!def[getVertexIndex(adj.getVertex())] && weights[getVertexIndex(adj.getVertex())] > getEdgeWeight(vertex.getVertex(), adj.getVertex())){
-                    graph.vertices.add(vertices.get(getVertexIndex(adj.getVertex())));
-                    graph.addEdge(vertex.getVertex(), adj.getVertex());
+                if (!def[getVertexIndex(adj.getVertex())]
+                        && forest.getDistance(adj.getVertex()) > getEdgeWeight(vertex.getVertex(), adj.getVertex())) {
+                    forest.setParent(adj.getVertex(), vertex.getVertex());
+                    forest.setDistance(adj.getVertex(), getEdgeWeight(vertex.getVertex(), adj.getVertex()));
+                    queue.decreaseKey(forest.getDistance(adj.getVertex()),
+                            vertices.get(getVertexIndex(adj.getVertex())));
                 }
+            }
+        }
+        for (AdjListItem vertex : vertices) {
+            if (!vertex.getVertex().equals(arg0)) {
+                graph.addEdge(forest.getPartent(vertex.getVertex()), vertex.getVertex());
+                graph.setEdgeWeight(forest.getPartent(vertex.getVertex()), vertex.getVertex(),
+                        forest.getDistance(vertex.getVertex()));
             }
         }
         return graph;
@@ -334,9 +350,9 @@ public class AdjListUndirWeight implements WeightedGraph {
             throw new NoSuchElementException(ARCO_NON_APPARTIENE_AL_GRAFO);
 
         for (AdjListItem adjListItem : vertices)
-            if (adjListItem.getVertex().equals(arg0))
+            if (adjListItem.getVertex().equals(arg0) || adjListItem.getVertex().equals(arg1))
                 for (VertexAdjListItem item : adjListItem.getAdjList())
-                    if (item.getVertex().equals(arg1))
+                    if (item.getVertex().equals(arg1) || item.getVertex().equals(arg0))
                         item.setWeight(arg2);
     }
 
@@ -352,7 +368,7 @@ public class AdjListUndirWeight implements WeightedGraph {
             return false;
 
         for (AdjListItem vertex : vertices)
-            if (graph.getVertexIndex(vertex.getVertex()) != getVertexIndex(vertex.getVertex()))
+            if (!graph.containsVertex(vertex.getVertex()))
                 return false;
 
         return compareEdges(graph);
@@ -364,10 +380,8 @@ public class AdjListUndirWeight implements WeightedGraph {
                 if (graph.containsEdge(vertex.getVertex(), adjacent.getVertex()) != containsEdge(vertex.getVertex(),
                         adjacent.getVertex()))
                     return false;
-                if (graph.containsEdge(vertex.getVertex(), adjacent.getVertex())
-                        && containsEdge(vertex.getVertex(), adjacent.getVertex())
-                        && getEdgeWeight(vertex.getVertex(), adjacent.getVertex()) != graph
-                                .getEdgeWeight(vertex.getVertex(), adjacent.getVertex()))
+                if (getEdgeWeight(vertex.getVertex(), adjacent.getVertex()) != graph.getEdgeWeight(vertex.getVertex(),
+                        adjacent.getVertex()))
                     return false;
             }
         return true;
@@ -376,5 +390,22 @@ public class AdjListUndirWeight implements WeightedGraph {
     @Override
     public int hashCode() {
         return super.hashCode() + vertices.size();
+    }
+
+    // Pratico 3
+    public WeightedGraph getApproximatedTSP(String start) {
+        AdjListUndirWeight graph = new AdjListUndirWeight();
+        AdjListUndirWeight prim = (AdjListUndirWeight) getPrimMST(start);
+        prim.equals(this);
+        for(AdjListItem vertex : vertices)
+            graph.addVertex(vertex.getVertex());
+        var forest = prim.getDFSTOTForest(start);
+        for (AdjListItem vertex : vertices) {
+            if (!vertex.getVertex().equals(start)) {
+                graph.addEdge(forest.getPartent(vertex.getVertex()), vertex.getVertex());
+                graph.setEdgeWeight(forest.getPartent(vertex.getVertex()), vertex.getVertex(), prim.getEdgeWeight(forest.getPartent(vertex.getVertex()), vertex.getVertex()));
+            }
+        }
+        return graph;
     }
 }

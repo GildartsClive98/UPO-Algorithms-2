@@ -3,10 +3,7 @@ package upo.graph20024119;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.NoSuchElementException;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 
 import upo.additionalstructures.RealPriorityQueue;
@@ -396,16 +393,33 @@ public class AdjListUndirWeight implements WeightedGraph {
     public WeightedGraph getApproximatedTSP(String start) {
         AdjListUndirWeight graph = new AdjListUndirWeight();
         AdjListUndirWeight prim = (AdjListUndirWeight) getPrimMST(start);
-        prim.equals(this);
-        for(AdjListItem vertex : vertices)
+        int[] order = new int[prim.size()];
+        for (var vertex : prim.vertices)
             graph.addVertex(vertex.getVertex());
-        var forest = prim.getDFSTOTForest(start);
-        for (AdjListItem vertex : vertices) {
-            if (!vertex.getVertex().equals(start)) {
-                graph.addEdge(forest.getPartent(vertex.getVertex()), vertex.getVertex());
-                graph.setEdgeWeight(forest.getPartent(vertex.getVertex()), vertex.getVertex(), prim.getEdgeWeight(forest.getPartent(vertex.getVertex()), vertex.getVertex()));
+        var forest = prim.getDFSTree(start);
+        for (AdjListItem vertex : prim.vertices)
+            order[prim.getVertexIndex(vertex.getVertex())] = forest.getStartTime(vertex.getVertex());
+        int[] shadowOrder = Arrays.copyOf(order, size());
+        Arrays.sort(shadowOrder);
+        for (int i = 0; i < shadowOrder.length - 1; i++) {
+            var index = findInArray(order, shadowOrder[i], 0);
+            var nextIndex = findInArray(order, shadowOrder[i + 1], 0);
+            var current = graph.vertices.get(index).getVertex();
+            var next = graph.vertices.get(nextIndex).getVertex();
+            graph.addEdge(current, next);
+            graph.setEdgeWeight(current, next, getEdgeWeight(current, next));
+            if (i == shadowOrder.length - 2) {
+                graph.addEdge(start, graph.vertices.get(nextIndex).getVertex());
+                graph.setEdgeWeight(start, graph.vertices.get(nextIndex).getVertex(), getEdgeWeight(start, graph.vertices.get(nextIndex).getVertex()));
             }
-        }
+        }        
         return graph;
+    }
+
+    private int findInArray(int[] array, int element, int startingIndex) {
+        for (int i = startingIndex; i < array.length; i++)
+            if (array[i] == element)
+                return i;
+        return -1;
     }
 }

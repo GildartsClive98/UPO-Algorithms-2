@@ -1,7 +1,7 @@
 package test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -12,7 +12,7 @@ public class TSPTest {
     AdjListUndirWeight graph = new AdjListUndirWeight();
 
     @Test
-    public void testTSPApprox() {
+    public void testTSP2Approx() {
         int num = 5;
         for (char a = 'A'; a < 'A' + num; a++)
             graph.addVertex(new String(new char[] { a }));
@@ -44,17 +44,17 @@ public class TSPTest {
             resultCompare.addVertex(new String(new char[] { a }));
         resultCompare.addEdge("E", "A");
         resultCompare.addEdge("A", "D");
+        resultCompare.addEdge("D", "C");
         resultCompare.addEdge("C", "B");
-        resultCompare.addEdge("E", "C");
+        resultCompare.addEdge("B", "E");
         resultCompare.setEdgeWeight("E", "A", 2.0);
         resultCompare.setEdgeWeight("A", "D", 3.0);
+        resultCompare.setEdgeWeight("D", "C", 4.0);
         resultCompare.setEdgeWeight("C", "B", 2.0);
-        resultCompare.setEdgeWeight("E", "C", 2.0);
+        resultCompare.setEdgeWeight("B", "E", 3.0);
 
-        var result = graph.getPrimMST("E");
+        var result = graph.getApproximatedTSP("E");
+        assertTrue(result.isCyclic());
         assertEquals(resultCompare, result);
-
-
-        result = graph.getApproximatedTSP("E");
     }
 }

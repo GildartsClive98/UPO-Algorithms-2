@@ -21,6 +21,18 @@ public class AdjListUndirWeight implements WeightedGraph {
     ArrayList<AdjListItem> vertices = new ArrayList<>();
     int time = 0;
 
+    public AdjListUndirWeight() {
+    }
+
+    public AdjListUndirWeight(AdjListUndirWeight graph) {
+        for (AdjListItem adjList : graph.vertices) {
+            var current = new AdjListItem(adjList.getVertex());
+            vertices.add(current);
+            for (VertexAdjListItem vertexAdjListItem : adjList.getAdjList())
+                current.getAdjList().add(new VertexAdjListItem(vertexAdjListItem.getVertex(), vertexAdjListItem.getWeight()));
+        }
+    }
+
     @Override
     public void addEdge(String arg0, String arg1) throws IllegalArgumentException {
         if (!containsVertex(arg0) || !containsVertex(arg1))
@@ -410,9 +422,10 @@ public class AdjListUndirWeight implements WeightedGraph {
             graph.setEdgeWeight(current, next, getEdgeWeight(current, next));
             if (i == shadowOrder.length - 2) {
                 graph.addEdge(start, graph.vertices.get(nextIndex).getVertex());
-                graph.setEdgeWeight(start, graph.vertices.get(nextIndex).getVertex(), getEdgeWeight(start, graph.vertices.get(nextIndex).getVertex()));
+                graph.setEdgeWeight(start, graph.vertices.get(nextIndex).getVertex(),
+                        getEdgeWeight(start, graph.vertices.get(nextIndex).getVertex()));
             }
-        }        
+        }
         return graph;
     }
 
@@ -421,5 +434,45 @@ public class AdjListUndirWeight implements WeightedGraph {
             if (array[i] == element)
                 return i;
         return -1;
+    }
+
+    private double getGraphTotalWeight() {
+        double value = 0;
+        for (var item : vertices) {
+            for (var adj : getAdjacent(item.getVertex()).toArray())
+                value += getEdgeWeight(item.getVertex(), adj.toString());
+        }
+        return value / 2.0;
+    }
+
+    public WeightedGraph getLocalResearchTSP(String start) {
+        var graph = (AdjListUndirWeight) getApproximatedTSP(start);
+        // i = start, j = graph.getAdjacent(start) h = graph.getAdjacent(j) k =
+        // graph.getAdjacent(h)
+        String i = start;
+        AdjListUndirWeight clone = new AdjListUndirWeight(graph);
+        do {
+            String j = graph.getAdjacent(i).toArray()[0].toString();
+            String h = graph.getAdjacent(j).toArray()[0].toString().equals(j)
+                    ? graph.getAdjacent(j).toArray()[1].toString()
+                    : graph.getAdjacent(j).toArray()[0].toString();
+            String k = graph.getAdjacent(h).toArray()[0].toString().equals(h)
+                    || graph.getAdjacent(h).toArray()[0].toString().equals(j)
+                            ? graph.getAdjacent(h).toArray()[1].toString()
+                            : graph.getAdjacent(h).toArray()[0].toString();
+            clone.removeEdge(i, j);
+            clone.removeEdge(h, k);
+
+            clone.addEdge(i, h);
+            clone.addEdge(k, j);
+            clone.setEdgeWeight(i, h, getEdgeWeight(i, h));
+            clone.setEdgeWeight(k, j, getEdgeWeight(k, j));
+            i = j;
+            if (clone.getGraphTotalWeight() < graph.getGraphTotalWeight()) {
+                graph = clone;
+                clone = new AdjListUndirWeight(graph);
+            }
+        } while (clone.getGraphTotalWeight() < graph.getGraphTotalWeight());
+        return graph;
     }
 }

@@ -16,4 +16,14 @@ public class AdjListUndir extends AdjListUndirWeight {
     public WeightedGraph getPrimMST(String arg0) throws UnsupportedOperationException, IllegalArgumentException {
         throw new UnsupportedOperationException("Non è possibile generare un Minimo Albero Ricoprente su un grafo non pesato.");
     }
+
+    @Override
+    public WeightedGraph getApproximatedTSP(String start) {
+        throw new UnsupportedOperationException("Non è possibile generare una soluzione TSP su un grafo non pesato.");
+    }
+
+    @Override
+    public WeightedGraph getLocalResearchTSP(String start) {
+        throw new UnsupportedOperationException("Non è possibile generare una soluzione TSP su un grafo non pesato.");
+    }
 }
